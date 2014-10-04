@@ -22,7 +22,7 @@ public:
 	{
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
-	}
+	}							//When set to zero, periodic tasks are called based on when DS packets come in
 	
 /**
  * Robot-wide initialization code should go here.
