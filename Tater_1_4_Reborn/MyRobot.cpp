@@ -1,4 +1,5 @@
 #include "WPILib.h"
+//#include "Shooter.h"
 
 /**
  * This is a demo program showing the use of the RobotBase class.
@@ -8,17 +9,24 @@
 class RobotDemo : public IterativeRobot
 {
 	RobotDrive myRobot; // robot drive system
-	Joystick lStick, rStick; // only joystick
-	Solenoid pneumChuck;
+	Joystick lStick, rStick, pickStick; // only joystick
+	Solenoid pneumChuck, forkDown, forkUp;
 	Compressor thing;
+	//Shooter shoot;
 
 public:
-	RobotDemo():
+	RobotDemo(): // list initialization 
 		myRobot(1, 10),	// these must be initialized in the same order
 		lStick(1),		// as they are declared above.
 		rStick(2),
+		pickStick(3),
 		pneumChuck(1, 3),
+		forkDown(1, 2),
+		forkUp(1, 1),
 	    thing(1, 1, 1, 1)
+	   //shoot()
+		
+	    
 	{
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
@@ -76,7 +84,7 @@ void RobotDemo::AutonomousPeriodic() {
 		printf("Doing it for the first time \n");
 	    }
 	else {
-		printf("Restarting \n");
+		printf("Restarting  \n");
     	}   
 	//add holding the arms up in autonomous
 	myRobot.SetSafetyEnabled(false);
@@ -88,6 +96,7 @@ void RobotDemo::AutonomousPeriodic() {
 	Wait(0.3);
 	pneumChuck.Set(false);
 	printf("I'm Done!!!!!!1 Aren't you happy?!?!?\n");
+	//shoot.bump();
 	Wait(10);
 	firstTime = false;
 	
@@ -110,7 +119,64 @@ void RobotDemo::TeleopInit() {
  */
 void RobotDemo::TeleopPeriodic() {
 //	myRobot.ArcadeDrive(stick); // drive with arcade style 
+	static int state = 0;
+	static int recordButton = 0;
+	static int loopCount = 0;
 	myRobot.TankDrive(lStick.GetY(), rStick.GetY(), true);
+	printf("Y value = %f\n", pickStick.GetY());
+	if (pickStick.GetY() < -0.1){
+		forkDown.Set(true);
+		printf("Down\n");
+		}
+	else {
+		forkDown.Set(false);
+		printf("Cancel Down\n");
+		}
+	
+	if (pickStick.GetY() > 0.1){
+			forkUp.Set(true);
+			printf("Up\n");
+		}
+	else {
+		forkUp.Set(false);
+		printf("Cancel Up\n");
+		}
+	
+	//shooter code
+	switch (state){
+		case 0://idle
+			if (lStick.GetRawButton(1)) {
+				recordButton = 1;
+				}
+			else if (lStick.GetRawButton(2)) {
+				recordButton = 2;
+				}
+			else if (lStick.GetRawButton(3)) {
+				recordButton = 3;
+				}
+			if (recordButton){
+				state = 1;
+				loopCount = 0;
+				}
+			break;
+		case 1://initial shot
+			pneumchuck.Set(true);
+			state = 2;
+			break;
+		case 2://delay
+			loopCount++;
+			if ((loopCount == 1)&&(recordButton == 3)){
+				state = 3;
+			}
+			break;
+		case 3://off
+			break;
+		case 4://second shot
+			break;
+	}
+	
+	
+	
 }
 
 /**
