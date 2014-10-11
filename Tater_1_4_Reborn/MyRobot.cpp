@@ -1,5 +1,5 @@
 #include "WPILib.h"
-//#include "Shooter.h"
+#include "Shooter.h"
 
 /**
  * This is a demo program showing the use of the RobotBase class.
@@ -160,7 +160,7 @@ void RobotDemo::TeleopPeriodic() {
 				}
 			break;
 		case 1://initial shot
-			pneumchuck.Set(true);
+			pneumChuck.Set(true);
 			state = 2;
 			break;
 		case 2://delay
