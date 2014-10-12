@@ -1,6 +1,5 @@
 #include "WPILib.h"
 #include "Shooter.h"
-
 /**
  * This is a demo program showing the use of the RobotBase class.
  * The IterativeRobot class is the base of a robot application that will automatically call your
@@ -12,7 +11,7 @@ class RobotDemo : public IterativeRobot
 	Joystick lStick, rStick, pickStick; // only joystick
 	Solenoid pneumChuck, forkDown, forkUp;
 	Compressor thing;
-	//Shooter shoot;
+	Shooter shoot;
 
 public:
 	RobotDemo(): // list initialization 
@@ -20,11 +19,11 @@ public:
 		lStick(1),		// as they are declared above.
 		rStick(2),
 		pickStick(3),
-		pneumChuck(1, 3),
+		pneumChuck(1, 4), /// should be 1, 3 - set to four for testing
 		forkDown(1, 2),
 		forkUp(1, 1),
-	    thing(1, 1, 1, 1)
-	   //shoot()
+	    thing(1, 1, 1, 1),
+	    shoot()
 		
 	    
 	{
@@ -39,6 +38,8 @@ public:
  * be called when the robot is first powered on.  It will be called exactly 1 time.
  */
 void RobotDemo::RobotInit() {
+	printf("Robot Init");
+	shoot.Init(&rStick); // tell the shooter object which stick controls the shooter
 }
 
 /**
@@ -48,6 +49,7 @@ void RobotDemo::RobotInit() {
  * the robot enters disabled mode. 
  */
 void RobotDemo::DisabledInit() {
+	printf("Disabled Init");
 }
 
 /**
@@ -57,6 +59,9 @@ void RobotDemo::DisabledInit() {
  * rate while the robot is in disabled mode.
  */
 void RobotDemo::DisabledPeriodic() {
+	static int count;
+	//printf("Disabled Periodic %i\n", count++);
+	//count--;
 }
 
 /**
@@ -69,6 +74,7 @@ void RobotDemo::AutonomousInit() {
 	myRobot.TankDrive((float)0, 0.0, true);
 	pneumChuck.Set(false);
 	thing.Start();
+	printf("Autonomous Init");
 }
 
 /**
@@ -96,7 +102,6 @@ void RobotDemo::AutonomousPeriodic() {
 	Wait(0.3);
 	pneumChuck.Set(false);
 	printf("I'm Done!!!!!!1 Aren't you happy?!?!?\n");
-	//shoot.bump();
 	Wait(10);
 	firstTime = false;
 	
@@ -109,6 +114,7 @@ void RobotDemo::AutonomousPeriodic() {
  * the robot enters teleop mode.
  */
 void RobotDemo::TeleopInit() {
+	printf("Teleop Init");
 }
 
 /**
@@ -122,24 +128,26 @@ void RobotDemo::TeleopPeriodic() {
 	static int state = 0;
 	static int recordButton = 0;
 	static int loopCount = 0;
+	shoot.Run();
 	myRobot.TankDrive(lStick.GetY(), rStick.GetY(), true);
-	printf("Y value = %f\n", pickStick.GetY());
+	//printf("Y value = %f\n", pickStick.GetY());
 	if (pickStick.GetY() < -0.1){
 		forkDown.Set(true);
-		printf("Down\n");
+		//printf("Down\n");
 		}
 	else {
 		forkDown.Set(false);
-		printf("Cancel Down\n");
+		//printf("Cancel Down\n");
 		}
 	
 	if (pickStick.GetY() > 0.1){
 			forkUp.Set(true);
-			printf("Up\n");
+			//printf("Up\n");
 		}
 	else {
+		
 		forkUp.Set(false);
-		printf("Cancel Up\n");
+		//printf("Cancel Up\n");
 		}
 	
 	//shooter code
@@ -186,6 +194,7 @@ void RobotDemo::TeleopPeriodic() {
  * the robot enters test mode.
  */
 void RobotDemo::TestInit() {
+	printf("Test Init");
 }
 
 /**
@@ -195,6 +204,8 @@ void RobotDemo::TestInit() {
  * rate while the robot is in test mode.
  */
 void RobotDemo::TestPeriodic() {
+	
+	printf("Test Periodic");
 }
 
 };
