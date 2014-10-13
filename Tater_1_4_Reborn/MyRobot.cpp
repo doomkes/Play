@@ -1,5 +1,6 @@
 #include "WPILib.h"
 #include "Shooter.h"
+#include "RobotMap.h"
 /**
  * This is a demo program showing the use of the RobotBase class.
  * The IterativeRobot class is the base of a robot application that will automatically call your
@@ -9,23 +10,21 @@ class RobotDemo : public IterativeRobot
 {
 	RobotDrive myRobot; // robot drive system
 	Joystick lStick, rStick, pickStick; // only joystick
-	Solenoid pneumChuck, forkDown, forkUp;
+	Solenoid forkDown, forkUp;
 	Compressor thing;
 	Shooter shoot;
 
 public:
 	RobotDemo(): // list initialization 
-		myRobot(1, 10),	// these must be initialized in the same order
-		lStick(1),		// as they are declared above.
-		rStick(2),
-		pickStick(3),
-		pneumChuck(1, 4), /// should be 1, 3 - set to four for testing
-		forkDown(1, 2),
-		forkUp(1, 1),
-	    thing(1, 1, 1, 1),
+		myRobot(LEFT_MOTOR_PMW, LEFT_MOTOR_PMW),	// these must be initialized in the same order
+		lStick(LTANK_JOY_USB),		// as they are declared above.
+		rStick(RTANK_JOY_USB),
+		pickStick(SHOOTER_JOY_USB),
+		forkDown(1, FORK_DN_SOL),
+		forkUp(1, FORK_UP_SOL),
+	    thing(1, PRESS_SW_DIO, 1, COMPRESSOR_RLY),
 	    shoot()
-		
-	    
+	  
 	{
 		myRobot.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
@@ -59,7 +58,7 @@ void RobotDemo::DisabledInit() {
  * rate while the robot is in disabled mode.
  */
 void RobotDemo::DisabledPeriodic() {
-	static int count;
+	//static int count;
 	//printf("Disabled Periodic %i\n", count++);
 	//count--;
 }
@@ -72,7 +71,6 @@ void RobotDemo::DisabledPeriodic() {
  */
 void RobotDemo::AutonomousInit() {
 	myRobot.TankDrive((float)0, 0.0, true);
-	pneumChuck.Set(false);
 	thing.Start();
 	printf("Autonomous Init");
 }
@@ -98,9 +96,7 @@ void RobotDemo::AutonomousPeriodic() {
 	myRobot.TankDrive(-0.85, -0.85, false);
 	Wait(1.5);
 	myRobot.TankDrive(0.0, 0.0, true);
-	pneumChuck.Set(true);
-	Wait(0.3);
-	pneumChuck.Set(false);
+	shoot.HighShot();
 	printf("I'm Done!!!!!!1 Aren't you happy?!?!?\n");
 	Wait(10);
 	firstTime = false;
@@ -125,10 +121,8 @@ void RobotDemo::TeleopInit() {
  */
 void RobotDemo::TeleopPeriodic() {
 //	myRobot.ArcadeDrive(stick); // drive with arcade style 
-	static int state = 0;
-	static int recordButton = 0;
-	static int loopCount = 0;
-	shoot.Run();
+
+	shoot.Run(); // check for button pushes and manange shots
 	myRobot.TankDrive(lStick.GetY(), rStick.GetY(), true);
 	//printf("Y value = %f\n", pickStick.GetY());
 	if (pickStick.GetY() < -0.1){
@@ -149,39 +143,6 @@ void RobotDemo::TeleopPeriodic() {
 		forkUp.Set(false);
 		//printf("Cancel Up\n");
 		}
-	
-	//shooter code
-	switch (state){
-		case 0://idle
-			if (lStick.GetRawButton(1)) {
-				recordButton = 1;
-				}
-			else if (lStick.GetRawButton(2)) {
-				recordButton = 2;
-				}
-			else if (lStick.GetRawButton(3)) {
-				recordButton = 3;
-				}
-			if (recordButton){
-				state = 1;
-				loopCount = 0;
-				}
-			break;
-		case 1://initial shot
-			pneumChuck.Set(true);
-			state = 2;
-			break;
-		case 2://delay
-			loopCount++;
-			if ((loopCount == 1)&&(recordButton == 3)){
-				state = 3;
-			}
-			break;
-		case 3://off
-			break;
-		case 4://second shot
-			break;
-	}
 	
 	
 	
