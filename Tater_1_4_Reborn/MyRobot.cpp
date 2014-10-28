@@ -8,21 +8,21 @@
  */ 
 class RobotDemo : public IterativeRobot
 {
-	RobotDrive myRobot; // robot drive system
-	Joystick lStick, rStick, pickStick; // only joystick
+	RobotDrive myRobot; 					// robot drive system
+	Joystick lStick, rStick, pickStick; 	// only joystick
 	Solenoid forkDown, forkUp;
-	Compressor thing;
-	Shooter shoot;
+	Compressor pump;
+	Shooter shoot;//stuff
 
 public:
-	RobotDemo(): // list initialization 
+	RobotDemo(): 									// list initialization
 		myRobot(LEFT_MOTOR_PMW, LEFT_MOTOR_PMW),	// these must be initialized in the same order
-		lStick(LTANK_JOY_USB),		// as they are declared above.
+		lStick(LTANK_JOY_USB),						// as they are declared above.
 		rStick(RTANK_JOY_USB),
 		pickStick(SHOOTER_JOY_USB),
 		forkDown(1, FORK_DN_SOL),
 		forkUp(1, FORK_UP_SOL),
-	    thing(1, PRESS_SW_DIO, 1, COMPRESSOR_RLY),
+	    pump(1, PRESS_SW_DIO, 1, COMPRESSOR_RLY),
 	    shoot()
 	  
 	{
@@ -70,8 +70,8 @@ void RobotDemo::DisabledPeriodic() {
  * the robot enters autonomous mode.
  */
 void RobotDemo::AutonomousInit() {
-	myRobot.TankDrive((float)0, 0.0, true);
-	thing.Start();
+	myRobot.TankDrive((float)0, 0.0, true);//make sure the robot is stopped
+	pump.Start();//turn on compressor
 	printf("Autonomous Init");
 }
 
@@ -85,21 +85,22 @@ void RobotDemo::AutonomousInit() {
 void RobotDemo::AutonomousPeriodic() {
 	static bool firstTime = true;
 	if (firstTime == true) {
-		printf("Doing it for the first time \n");
+		printf("Running \n");
 	    }
 	else {
-		printf("Restarting  \n");
+		printf("Restarting \n");
     	}   
-	//add holding the arms up in autonomous
+	forkUp.Set(true);						//keep forks up
 	myRobot.SetSafetyEnabled(false);
 	Wait(1.0);
 	myRobot.TankDrive(-0.85, -0.85, false);
 	Wait(1.5);
 	myRobot.TankDrive(0.0, 0.0, true);
 	shoot.HighShot();
-	printf("I'm Done!!!!!!1 Aren't you happy?!?!?\n");
+	printf("Finished \n");
 	Wait(10);
 	firstTime = false;
+	forkUp.Set(false);
 	
 }
 
@@ -120,28 +121,22 @@ void RobotDemo::TeleopInit() {
  * rate while the robot is in teleop mode.
  */
 void RobotDemo::TeleopPeriodic() {
-//	myRobot.ArcadeDrive(stick); // drive with arcade style 
 
-	shoot.Run(); // check for button pushes and manange shots
+	shoot.Run();						// check for button pushes and manange shots
 	myRobot.TankDrive(lStick.GetY(), rStick.GetY(), true);
-	//printf("Y value = %f\n", pickStick.GetY());
 	if (pickStick.GetY() < -0.1){
 		forkDown.Set(true);
-		//printf("Down\n");
 		}
 	else {
 		forkDown.Set(false);
-		//printf("Cancel Down\n");
 		}
 	
 	if (pickStick.GetY() > 0.1){
 			forkUp.Set(true);
-			//printf("Up\n");
 		}
 	else {
 		
 		forkUp.Set(false);
-		//printf("Cancel Up\n");
 		}
 	
 	

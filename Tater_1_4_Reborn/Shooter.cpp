@@ -54,16 +54,43 @@ void Shooter::Run(){
 				pow.Set(true);
 				m_state = 2;
 				break;
-			case 2://delay
+			case 2://initial shot delay
 				m_loopCount++;
 				if ((m_loopCount == 1)&&(m_recordButton == 3)){
 					m_state = 3;
 				}
+				if ((m_loopCount == 7)&&(m_recordButton == 2)){
+					m_state = 3;
+				}
+				if ((m_loopCount == 10)&&(m_recordButton == 1)){
+					m_state = 3;
+				}
 				break;
 			case 3://off
+				pow.Set(false);
+				m_state = 4;
 				break;
-			case 4://second shot
+			case 4://off delay
+				m_loopCount++;
+				if ((m_loopCount == 5)&&(m_recordButton == 3)){
+					m_state = 5;
+				}
+				if (m_recordButton == 2){
+					m_state = 1;
+				}
+				if (m_recordButton == 1){
+					m_state = 1;
+				}
+				break;
+			case 5://second shot (for bump shot only)
+				pow.Set(true);
+				m_state = 6;
+				break;
+			case 6://second shot delay
+				m_loopCount++;
+				if (m_loopCount == 8){
+				m_state = 1;
+				}
 				break;
 		}
 }
-
