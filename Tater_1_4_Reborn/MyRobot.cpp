@@ -12,7 +12,10 @@ class RobotDemo : public IterativeRobot
 	Joystick lStick, rStick, pickStick; 	// only joystick
 	Solenoid forkDown, forkUp;
 	Compressor pump;
-	Shooter shoot;//stuff
+	Shooter shoot;
+
+
+	//stuff to see if it worked
 
 public:
 	RobotDemo(): 									// list initialization
