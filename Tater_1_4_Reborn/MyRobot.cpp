@@ -14,9 +14,6 @@ class RobotDemo : public IterativeRobot
 	Compressor pump;
 	Shooter shoot;
 
-
-	//stuff to see if it worked
-
 public:
 	RobotDemo(): 									// list initialization
 		myRobot(LEFT_MOTOR_PMW, LEFT_MOTOR_PMW),	// these must be initialized in the same order

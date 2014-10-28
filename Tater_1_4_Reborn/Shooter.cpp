@@ -35,6 +35,7 @@ void Shooter::Run(){
 	
 	//shooter code
 		switch (m_state){
+
 			case 0://idle
 				if (shooter_stick->GetRawButton(1)) {
 					m_recordButton = 1;
@@ -50,10 +51,12 @@ void Shooter::Run(){
 					m_loopCount = 0;
 					}
 				break;
+
 			case 1://initial shot
 				pow.Set(true);
 				m_state = 2;
 				break;
+
 			case 2://initial shot delay
 				m_loopCount++;
 				if ((m_loopCount == 1)&&(m_recordButton == 3)){
@@ -66,10 +69,12 @@ void Shooter::Run(){
 					m_state = 3;
 				}
 				break;
+
 			case 3://off
 				pow.Set(false);
 				m_state = 4;
 				break;
+
 			case 4://off delay
 				m_loopCount++;
 				if ((m_loopCount == 5)&&(m_recordButton == 3)){
@@ -82,10 +87,12 @@ void Shooter::Run(){
 					m_state = 1;
 				}
 				break;
+
 			case 5://second shot (for bump shot only)
 				pow.Set(true);
 				m_state = 6;
 				break;
+
 			case 6://second shot delay
 				m_loopCount++;
 				if (m_loopCount == 8){
