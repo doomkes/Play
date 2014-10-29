@@ -33,7 +33,7 @@
 #define FORK_UP_SOL 1
 #define FORK_DN_SOL 2
 #define PNUEM_SOL 3
-#define SOLENOID_4
+#define ARC_RCTR_SOL 4
 #define SOLENOID_5
 #define SOLENOID_5
 #define SOLENOID_6

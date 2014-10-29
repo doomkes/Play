@@ -10,7 +10,7 @@ class RobotDemo : public IterativeRobot
 {
 	RobotDrive myRobot; 					// robot drive system
 	Joystick lStick, rStick, pickStick; 	// only joystick
-	Solenoid forkDown, forkUp;
+	Solenoid forkDown, forkUp, arcReactor;
 	Compressor pump;
 	Shooter shoot;
 
@@ -22,6 +22,7 @@ public:
 		pickStick(SHOOTER_JOY_USB),
 		forkDown(1, FORK_DN_SOL),
 		forkUp(1, FORK_UP_SOL),
+		arcReactor (1, ARC_RCTR_SOL),
 	    pump(1, PRESS_SW_DIO, 1, COMPRESSOR_RLY),
 	    shoot()
 	  
@@ -83,24 +84,40 @@ void RobotDemo::AutonomousInit() {
  * 
  */
 void RobotDemo::AutonomousPeriodic() {
-	static bool firstTime = true;
-	if (firstTime == true) {
-		printf("Running \n");
-	    }
-	else {
-		printf("Restarting \n");
-    	}   
-	forkUp.Set(true);						//keep forks up
+	//printf("Running \n");
+	//forkUp.Set(true);						//keep forks up
+	//myRobot.SetSafetyEnabled(false);
+	//Wait(1.0);
+	//myRobot.TankDrive(-0.85, -0.85, false);
+	//Wait(1.5);
+	//myRobot.TankDrive(0.0, 0.0, true);
+	//shoot.HighShot();
+	//printf("Finished \n");
+	//Wait(10);
+	//forkUp.Set(false);
+	
+	//potential two ball auto
+	
+	forkUp.Set(true); //hold forks up
 	myRobot.SetSafetyEnabled(false);
-	Wait(1.0);
-	myRobot.TankDrive(-0.85, -0.85, false);
+	myRobot.TankDrive(-0.85, -0.85, false);	//drive forward for first shot
 	Wait(1.5);
-	myRobot.TankDrive(0.0, 0.0, true);
-	shoot.HighShot();
-	printf("Finished \n");
-	Wait(10);
-	firstTime = false;
-	forkUp.Set(false);
+	myRobot.TankDrive(0.0, 0.0, true);	//stop
+	shoot.HighShot();	//shoot
+	forkUp.Set(false);	//release forks
+	Wait(1.0);
+	forkDown.Set(true);	//lower forks
+	myRobot.TankDrive(0.85, 0.85, false);	//drive back for next ball
+	Wait(1.6);
+	myRobot.TankDrive(0.0, 0.0, true);	//stop
+	Wait(1.0);
+	forkDown.Set(false);	//release forks
+	forkUp.Set(true);	//raise forks
+	Wait(1.0);
+	myRobot.TankDrive(-0.85, -0.85, false);	//drive forward for second shot
+	Wait(1.5);
+	myRobot.TankDrive(0.0, 0.0, true);	//stop
+	shoot.HighShot();	//shoot
 	
 }
 
@@ -121,23 +138,51 @@ void RobotDemo::TeleopInit() {
  * rate while the robot is in teleop mode.
  */
 void RobotDemo::TeleopPeriodic() {
-
+	static int frontDrive = 1;
 	shoot.Run();						// check for button pushes and manange shots
-	myRobot.TankDrive(lStick.GetY(), rStick.GetY(), true);
+	
+	
+	if (lStick.GetRawButton(2)) {
+		frontDrive = 1;
+	}
+	if (lStick.GetRawButton(3)) {
+		frontDrive = 2;
+	}
+	
+	
+	if (frontDrive == 1) {		//front is "forward"
+		arcReactor.Set(false);	//deacticate arc-reactor
+		if (lStick.GetTrigger()) {
+			myRobot.TankDrive(lStick.GetY(), rStick.GetY(), true);	//with turbo
+		}
+		else {
+			myRobot.TankDrive(lStick.GetY()*0.85, rStick.GetY()*0.85, true);	//without turbo
+		}
+	}
+	if (frontDrive == 2) {		//rear is "forward"
+		if (lStick.GetTrigger()) {	//activate arc-reactor
+			myRobot.TankDrive(-rStick.GetY(), -lStick.GetY(), true);	//with turbo
+		}
+		else {
+			myRobot.TankDrive(-rStick.GetY()*0.85, -lStick.GetY()*0.85, true);	//without turbo
+		}
+	}
+	
+	
 	if (pickStick.GetY() < -0.1){
 		forkDown.Set(true);
-		}
+	}
 	else {
 		forkDown.Set(false);
-		}
+	}
 	
 	if (pickStick.GetY() > 0.1){
 			forkUp.Set(true);
-		}
+	}
 	else {
 		
 		forkUp.Set(false);
-		}
+	}
 	
 	
 	
