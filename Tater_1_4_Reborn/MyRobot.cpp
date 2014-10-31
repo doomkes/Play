@@ -108,7 +108,7 @@ void RobotDemo::AutonomousPeriodic() {
 	Wait(1.0);
 	forkDown.Set(true);	//lower forks
 	myRobot.TankDrive(0.85, 0.85, false);	//drive back for next ball
-	Wait(1.6);
+	Wait(1.5);
 	myRobot.TankDrive(0.0, 0.0, true);	//stop
 	Wait(1.0);
 	forkDown.Set(false);	//release forks
