@@ -37,13 +37,13 @@ void Shooter::Run(){
 		switch (m_state){
 
 			case 0://idle
-				if (shooter_stick->GetRawButton(1)) {
+				if (shooter_stick->GetRawButton(1)) {	//full shot
 					m_recordButton = 1;
 					}
-				else if (shooter_stick->GetRawButton(2)) {
+				else if (shooter_stick->GetRawButton(2)) {	//truss shot
 					m_recordButton = 2;
 					}
-				else if (shooter_stick->GetRawButton(3)) {
+				else if (shooter_stick->GetRawButton(3)) {	//bump shot
 					m_recordButton = 3;
 					}
 				if (m_recordButton){
@@ -59,13 +59,13 @@ void Shooter::Run(){
 
 			case 2://initial shot delay
 				m_loopCount++;
-				if ((m_loopCount == 1)&&(m_recordButton == 3)){
+				if ((m_loopCount == 10)&&(m_recordButton == 1)){
 					m_state = 3;
 				}
 				if ((m_loopCount == 7)&&(m_recordButton == 2)){
 					m_state = 3;
 				}
-				if ((m_loopCount == 10)&&(m_recordButton == 1)){
+				if ((m_loopCount == 1)&&(m_recordButton == 3)){
 					m_state = 3;
 				}
 				break;
@@ -77,15 +77,16 @@ void Shooter::Run(){
 
 			case 4://off delay
 				m_loopCount++;
-				if ((m_loopCount == 5)&&(m_recordButton == 3)){
-					m_state = 5;
+				if (m_recordButton == 1){
+					m_state = 1;
 				}
 				if (m_recordButton == 2){
 					m_state = 1;
 				}
-				if (m_recordButton == 1){
-					m_state = 1;
+				if ((m_loopCount == 5)&&(m_recordButton == 3)){
+					m_state = 5;
 				}
+
 				break;
 
 			case 5://second shot (for bump shot only)

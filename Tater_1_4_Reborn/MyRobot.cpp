@@ -138,34 +138,35 @@ void RobotDemo::TeleopInit() {
  * rate while the robot is in teleop mode.
  */
 void RobotDemo::TeleopPeriodic() {
-	static int frontDrive = 1;
+	static bool frontDrive = true;
 	shoot.Run();						// check for button pushes and manange shots
 	
 	
 	if (lStick.GetRawButton(2)) {
-		frontDrive = 1;
+		frontDrive = true;
 	}
 	if (lStick.GetRawButton(3)) {
-		frontDrive = 2;
+		frontDrive = false;
 	}
 	
 	
-	if (frontDrive == 1) {		//front is "forward"
-		arcReactor.Set(false);	//deacticate arc-reactor
+	if (frontDrive) {		//front is "forward"
 		if (lStick.GetTrigger()) {
 			myRobot.TankDrive(lStick.GetY(), rStick.GetY(), true);	//with turbo
 		}
 		else {
 			myRobot.TankDrive(lStick.GetY()*0.85, rStick.GetY()*0.85, true);	//without turbo
 		}
+		arcReactor.Set(false);	//de-activate arc-reactor
 	}
-	if (frontDrive == 2) {		//rear is "forward"
-		if (lStick.GetTrigger()) {	//activate arc-reactor
+	if (!frontDrive) {		//rear is "forward"
+		if (lStick.GetTrigger()) {	
 			myRobot.TankDrive(-rStick.GetY(), -lStick.GetY(), true);	//with turbo
 		}
 		else {
 			myRobot.TankDrive(-rStick.GetY()*0.85, -lStick.GetY()*0.85, true);	//without turbo
 		}
+		arcReactor.Set(true);	//activate arc-reactor
 	}
 	
 	
