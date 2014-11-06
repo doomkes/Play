@@ -144,9 +144,11 @@ void RobotDemo::TeleopPeriodic() {
 	
 	if (lStick.GetRawButton(2)) {
 		frontDrive = true;
+		arcReactor.Set(false);	//de-activate arc-reactor
 	}
 	if (lStick.GetRawButton(3)) {
 		frontDrive = false;
+		arcReactor.Set(true);	//activate arc-reactor
 	}
 	
 	
@@ -157,7 +159,6 @@ void RobotDemo::TeleopPeriodic() {
 		else {
 			myRobot.TankDrive(lStick.GetY()*0.85, rStick.GetY()*0.85, true);	//without turbo
 		}
-		arcReactor.Set(false);	//de-activate arc-reactor
 	}
 	if (!frontDrive) {		//rear is "forward"
 		if (lStick.GetTrigger()) {	
@@ -166,7 +167,6 @@ void RobotDemo::TeleopPeriodic() {
 		else {
 			myRobot.TankDrive(-rStick.GetY()*0.85, -lStick.GetY()*0.85, true);	//without turbo
 		}
-		arcReactor.Set(true);	//activate arc-reactor
 	}
 	
 	
