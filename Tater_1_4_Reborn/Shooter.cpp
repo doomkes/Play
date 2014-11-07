@@ -78,10 +78,10 @@ void Shooter::Run(){
 			case 4://off delay
 				m_loopCount++;
 				if (m_recordButton == 1){
-					m_state = 1;
+					m_state = 0;
 				}
 				if (m_recordButton == 2){
-					m_state = 1;
+					m_state = 0;
 				}
 				if ((m_loopCount == 5)&&(m_recordButton == 3)){
 					m_state = 5;
@@ -97,7 +97,8 @@ void Shooter::Run(){
 			case 6://second shot delay
 				m_loopCount++;
 				if (m_loopCount == 8){
-				m_state = 1;
+				pow.Set(false);
+				m_state = 0;
 				}
 				break;
 		}

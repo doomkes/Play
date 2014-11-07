@@ -16,7 +16,7 @@ class RobotDemo : public IterativeRobot
 
 public:
 	RobotDemo(): 									// list initialization
-		myRobot(LEFT_MOTOR_PMW, LEFT_MOTOR_PMW),	// these must be initialized in the same order
+		myRobot(LEFT_MOTOR_PMW, RIGHT_MOTOR_PWM),	// these must be initialized in the same order
 		lStick(LTANK_JOY_USB),						// as they are declared above.
 		rStick(RTANK_JOY_USB),
 		pickStick(SHOOTER_JOY_USB),
