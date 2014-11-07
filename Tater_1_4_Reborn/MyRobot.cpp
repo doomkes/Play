@@ -3,7 +3,27 @@
 #include "RobotMap.h"
 #include "TrapezoidalMove.h"
 
+class ourPIDoutput : public PIDOutput 
+{
+	float m_driveVal;
+	public:
+		ourPIDoutput();
+		~ourPIDoutput();
+		void PIDWrite (float output);
+		float GetdriveVal(void);
+};
+ourPIDoutput::ourPIDoutput() {
+	m_driveVal = 0;
+}
+ourPIDoutput::~ourPIDoutput() {
 
+}
+void ourPIDoutput::PIDWrite(float output) {
+	m_driveVal = output;
+}
+float ourPIDoutput::GetdriveVal() {
+	return m_driveVal;
+}
 /**
  * This is a demo program showing the use of the RobotBase class.
  * The IterativeRobot class is the base of a robot application that will automatically call your
@@ -19,6 +39,8 @@ class RobotDemo : public IterativeRobot
 	bool m_autoFirst;
 	Encoder lCode, rCode;
 	TrapezoidalMoveProfile autoMove;
+	ourPIDoutput lPIDout, rPIDout;
+	PIDController lLoop, rLoop;
 
 public:
 	RobotDemo(): 									// list initialization
@@ -33,7 +55,13 @@ public:
 	    shoot(),
 		lCode (1, CODE_LT_A, 1, CODE_LT_B, false),
 		rCode (1, CODE_RT_A, 1, CODE_RT_B, true),
-		autoMove(0.1, 0.1, 2.0, 15*12.0)
+		autoMove(0.1, 0.1, 2.0, 15*12.0),
+		lPIDout(),
+		rPIDout(),
+		//lLoop(0.1, 0.001, 0.0, lCode, lPIDout,0.05),
+		//rLoop(0.1, 0.001, 0.0, rCode, rPIDout,0.05)
+		lLoop(0.1, 0.001, 0.0, lCode, lPIDout,0.05),
+		rLoop(0.1, 0.001, 0.0, rCode, rPIDout,0.05)
 	  
 	{
 		myRobot.SetExpiration(0.1);
@@ -83,6 +111,14 @@ void RobotDemo::AutonomousInit() {
 	m_autoFirst = true;
 	myRobot.TankDrive((float)0, 0.0, true);//make sure the robot is stopped
 	pump.Start();//turn on compressor
+	lCode.Reset();
+	rCode.Reset();
+	lCode.Start();
+	rCode.Start();
+	lLoop.SetSetpoint(0.0);
+	rLoop.SetSetpoint(0.0);
+	lLoop.Enable();
+	rLoop.Enable();
 	printf("Autonomous Init");
 }
 
@@ -94,42 +130,9 @@ void RobotDemo::AutonomousInit() {
  * 
  */
 void RobotDemo::AutonomousPeriodic() {
-	//printf("Running \n");
-	//forkUp.Set(true);						//keep forks up
-	//myRobot.SetSafetyEnabled(false);
-	//Wait(1.0);
-	//myRobot.TankDrive(-0.85, -0.85, false);
-	//Wait(1.5);
-	//myRobot.TankDrive(0.0, 0.0, true);
-	//shoot.HighShot();
-	//printf("Finished \n");
-	//Wait(10);
-	//forkUp.Set(false);
-	
-	//potential two ball auto
-	if (m_autoFirst){
-		forkUp.Set(true); //hold forks up
-		myRobot.SetSafetyEnabled(false);
-		myRobot.TankDrive(-0.85, -0.85, false);	//drive forward for first shot
-		Wait(0.7);
-		myRobot.TankDrive(0.0, 0.0, true);	//stop
-		shoot.HighShot();	//shoot
-		forkUp.Set(false);	//release forks
-		Wait(1.0);
-		forkDown.Set(true);	//lower forks
-		myRobot.TankDrive(0.85, 0.85, false);	//drive back for next ball
-		Wait(0.7);
-		myRobot.TankDrive(0.0, 0.0, true);	//stop
-		Wait(1.0);
-		forkDown.Set(false);	//release forks
-		forkUp.Set(true);	//raise forks
-		Wait(1.0);
-		myRobot.TankDrive(-0.85, -0.85, false);	//drive forward for second shot
-		Wait(0.7);
-		myRobot.TankDrive(0.0, 0.0, true);	//stop
-		shoot.HighShot();	//shoot
-		}
-	m_autoFirst = false;
+	lLoop.SetSetpoint(60.0*1000);
+	rLoop.SetSetpoint(60.0*1000);
+	myRobot.TankDrive(lPIDout.GetdriveVal(), rPIDout.GetdriveVal(), false);
 }
 
 /**

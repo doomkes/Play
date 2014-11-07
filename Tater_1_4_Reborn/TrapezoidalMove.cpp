@@ -17,6 +17,9 @@ TrapezoidalMoveProfile::TrapezoidalMoveProfile() {
 
 }
 
+TrapezoidalMoveProfile::~TrapezoidalMoveProfile() {
+}
+
 TrapezoidalMoveProfile::TrapezoidalMoveProfile(float Accel, float Decel, float MaxSpeed, float Distance)
 {
 	m_accel = Accel;
