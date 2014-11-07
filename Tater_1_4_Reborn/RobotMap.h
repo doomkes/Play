@@ -18,7 +18,7 @@
 
 
 // PWM OUTPUTS
-#define LEFT_MOTOR_PMW 1
+#define RIGHT_MOTOR_PWM 1
 #define PWM_2 2
 #define PWM_3 3
 #define PWM_4 4
@@ -27,7 +27,7 @@
 #define PWM_7 7
 #define PWM_8 8
 #define PWM_9 9
-#define RIGHT_MOTOR_PWM 10
+#define LEFT_MOTOR_PWM 10
 
 // SOLENOID CHANNELS
 #define FORK_UP_SOL 1
@@ -52,12 +52,12 @@
 
 //DIGITAL IO
 #define PRESS_SW_DIO 1
-#define DIO_2
 #define DIO_3
-#define DIO_4
-#define DIO_5
-#define DIO_6
-#define DIO_7
+#define DIO_2
+#define CODE_LT_A 4
+#define CODE_LT_B 5
+#define CODE_RT_A 6
+#define CODE_RT_B 7
 #define DIO_8
 #define DIO_9
 #define DIO_10
@@ -65,6 +65,9 @@
 #define DIO_12
 #define DIO_13
 #define DIO_14
+
+//MISC.
+#define INCH_PER_CNT (12.566/1000) //wheel circumference devided by lines-per-revolution
 
 #endif
 

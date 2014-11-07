@@ -32,18 +32,25 @@ void Shooter::HighShot()
 	}
 
 void Shooter::Run(){
-	
+	static int  lastButton1 = 0,lastButton2 = 0,lastButton3 = 0;
+	static int  currButton1 = 0,currButton2 = 0,currButton3 = 0;
 	//shooter code
+	currButton1 = (shooter_stick->GetRawButton(1));
+	currButton2 = (shooter_stick->GetRawButton(2));
+	currButton3 = (shooter_stick->GetRawButton(3));
 		switch (m_state){
 
 			case 0://idle
-				if (shooter_stick->GetRawButton(1)) {	//full shot
+			//printf ("we are in case 0 \n" );
+				m_recordButton = 0;
+				m_loopCount = 0;
+				if (currButton1 && !lastButton1) {	//full shot
 					m_recordButton = 1;
 					}
-				else if (shooter_stick->GetRawButton(2)) {	//truss shot
+				else if (currButton2 && !lastButton2) {	//truss shot
 					m_recordButton = 2;
 					}
-				else if (shooter_stick->GetRawButton(3)) {	//bump shot
+				else if (currButton3 && !lastButton3) {	//bump shot
 					m_recordButton = 3;
 					}
 				if (m_recordButton){
@@ -53,12 +60,13 @@ void Shooter::Run(){
 				break;
 
 			case 1://initial shot
+				printf ("we are in case 1 \n" );
 				pow.Set(true);
 				m_state = 2;
+				m_loopCount = 0;
 				break;
-
 			case 2://initial shot delay
-				m_loopCount++;
+				printf ("we are in case 2 \n" );
 				if ((m_loopCount == 10)&&(m_recordButton == 1)){
 					m_state = 3;
 				}
@@ -71,35 +79,43 @@ void Shooter::Run(){
 				break;
 
 			case 3://off
+				printf ("we are in case 3 \n" );
 				pow.Set(false);
 				m_state = 4;
+				m_loopCount = 0;
 				break;
 
 			case 4://off delay
-				m_loopCount++;
+				printf ("we are in case 4 \n" );
 				if (m_recordButton == 1){
 					m_state = 0;
 				}
 				if (m_recordButton == 2){
 					m_state = 0;
 				}
-				if ((m_loopCount == 5)&&(m_recordButton == 3)){
+				if ((m_loopCount == 4)&&(m_recordButton == 3)){
 					m_state = 5;
 				}
 
 				break;
 
 			case 5://second shot (for bump shot only)
+				printf ("we are in case 5 \n" );
 				pow.Set(true);
 				m_state = 6;
+				m_loopCount = 0;
 				break;
 
 			case 6://second shot delay
-				m_loopCount++;
-				if (m_loopCount == 8){
+				printf ("we are in case 6 \n" );
+				if (m_loopCount == 3){
 				pow.Set(false);
 				m_state = 0;
-				}
+				} 
 				break;
 		}
+		m_loopCount++;
+		currButton1 = lastButton1;
+		currButton2 = lastButton2;
+		currButton3 = lastButton3;
 }
