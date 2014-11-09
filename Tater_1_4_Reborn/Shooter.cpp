@@ -63,6 +63,11 @@ void Shooter::Run(){
 				printf ("we are in case 1 \n" );
 				pow.Set(true);
 				m_state = 2;
+				if (m_recordButton == 3){
+					Wait(0.01);
+					pow.Set(false);
+					m_state = 3;
+				}
 				m_loopCount = 0;
 				break;
 			case 2://initial shot delay
@@ -71,9 +76,6 @@ void Shooter::Run(){
 					m_state = 3;
 				}
 				if ((m_loopCount == 7)&&(m_recordButton == 2)){
-					m_state = 3;
-				}
-				if ((m_loopCount == 1)&&(m_recordButton == 3)){
 					m_state = 3;
 				}
 				break;
@@ -115,7 +117,7 @@ void Shooter::Run(){
 				break;
 		}
 		m_loopCount++;
-		currButton1 = lastButton1;
-		currButton2 = lastButton2;
-		currButton3 = lastButton3;
+		lastButton1 = currButton1;
+		lastButton2 = currButton2;
+		lastButton3 = currButton3;
 }
