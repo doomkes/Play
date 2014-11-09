@@ -173,7 +173,7 @@ void RobotDemo::TeleopPeriodic() {
 	
 	
 	if (frontDrive) {		//front is "forward"
-		if (lStick.GetTrigger()) {
+		if (lStick.GetRawButton(1)) {
 			myRobot.TankDrive(-lStick.GetY(), -rStick.GetY(), true);	//with turbo
 		}
 		else {
@@ -181,7 +181,7 @@ void RobotDemo::TeleopPeriodic() {
 		}
 	}
 	if (!frontDrive) {		//rear is "forward"
-		if (lStick.GetTrigger()) {	
+		if (lStick.GetRawButton(1)) {	
 			myRobot.TankDrive(rStick.GetY(), lStick.GetY(), true);	//with turbo
 		}
 		else {
