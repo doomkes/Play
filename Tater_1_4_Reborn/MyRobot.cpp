@@ -160,20 +160,22 @@ void RobotDemo::TeleopPeriodic() {
 	//double lCodeVal = lCode.GetRaw()*INCH_PER_CNT;
 	//double rCodeVal = rCode.GetRaw()*INCH_PER_CNT;
 	//printf("Left = %f Right = %f\n",rCodeVal, lCodeVal);
-
+	printf("axis 0:%f\t 1:%f\t 2:%f\n",lStick.GetRawAxis(3),rStick.GetRawAxis(3));
 	//switch between arcade/tank drive mode
-	if ((lStick.GetThrottle() < 2)&&(lStick.GetThrottle() > 5)&&(lStick.GetThrottle() > 5)) {
+	if ((lStick.GetRawAxis(3) == -1)&&(rStick.GetRawAxis(3) == 1)) {
 		switch (switchState) {
 			case 0:
+				printf("case 0\n");
 				counter = 0;
 				if (rStick.GetRawButton(6)) {
 					switchState = 1;
 				}
 				break;
 			case 1:
+				printf("case 1\n");
 				counter++;
 				if (!rStick.GetRawButton(6)) {
-					if ((counter >= 25)&&(counter <= 75)) {
+					if (counter <= 75) {
 						switchState = 2;
 						counter = 0;
 					}
@@ -183,9 +185,10 @@ void RobotDemo::TeleopPeriodic() {
 				}
 				break;
 			case 2:
+				printf("case 2\n");
 				counter++;
 				if (rStick.GetRawButton(11)) {
-					if ((counter >= 25)&&(counter <=75)) {
+					if (counter <=75) {
 						switchState = 3;
 						counter = 0;
 					}
@@ -194,19 +197,19 @@ void RobotDemo::TeleopPeriodic() {
 					}
 				}
 				break;
-			case 4:
+			case 3:
+				printf("case 3\n");
 				if (!rStick.GetRawButton(11)) {
-					if ((counter >= 25)&&(counter <= 75)) {
+					if (counter <= 75) {
 						if (arcadeDrive) {
 							arcadeDrive = false;
 						}
 						else {
 							arcadeDrive = true;
 						}
+						
 					}
-					else {
-						switchState = 0;
-					}
+					switchState = 0;
 				}
 				break;
 		}
