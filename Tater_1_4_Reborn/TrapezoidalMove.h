@@ -14,6 +14,7 @@ class TrapezoidalMoveProfile {
 public:
 	TrapezoidalMoveProfile();
 	TrapezoidalMoveProfile(float Accel, float Decel, float MaxSpeed, float Distance);
+	~TrapezoidalMoveProfile();
 	void SetAccel(float);		// feet per second per second
 	void SetDecel(float);		// feet per second per second
 	void SetMaxSpeed(float);	// feet per second

@@ -2,28 +2,8 @@
 #include "Shooter.h"
 #include "RobotMap.h"
 #include "TrapezoidalMove.h"
+#include "TaterDrive.h"
 
-class ourPIDoutput : public PIDOutput 
-{
-	float m_driveVal;
-	public:
-		ourPIDoutput();
-		~ourPIDoutput();
-		void PIDWrite (float output);
-		float GetdriveVal(void);
-};
-ourPIDoutput::ourPIDoutput() {
-	m_driveVal = 0;
-}
-ourPIDoutput::~ourPIDoutput() {
-
-}
-void ourPIDoutput::PIDWrite(float output) {
-	m_driveVal = output;
-}
-float ourPIDoutput::GetdriveVal() {
-	return m_driveVal;
-}
 /**
  * This is a demo program showing the use of the RobotBase class.
  * The IterativeRobot class is the base of a robot application that will automatically call your
@@ -31,20 +11,24 @@ float ourPIDoutput::GetdriveVal() {
  */ 
 class RobotDemo : public IterativeRobot
 {
-	RobotDrive myRobot; 					// robot drive system
+	//RobotDrive myRobot; 					// robot drive system
+	TaterDrive LeftDrive;
+	TaterDrive RightDrive;
 	Joystick lStick, rStick, pickStick; 	// only joystick
 	Solenoid forkDown, forkUp, arcReactor;
 	Compressor pump;
 	Shooter shoot;
-	bool m_autoFirst;
 	Encoder lCode, rCode;
 	TrapezoidalMoveProfile autoMove;
-	ourPIDoutput lPIDout, rPIDout;
 	PIDController lLoop, rLoop;
+	double m_AutoStartTime;
+	bool m_autoFirst;
 
 public:
 	RobotDemo(): 									// list initialization
-		myRobot(LEFT_MOTOR_PWM, RIGHT_MOTOR_PWM),	// these must be initialized in the same order
+	//	myRobot(LEFT_MOTOR_PWM, RIGHT_MOTOR_PWM),	// these must be initialized in the same order
+		LeftDrive(LEFT_MOTOR_PWM),
+		RightDrive(RIGHT_MOTOR_PWM),
 		lStick(LTANK_JOY_USB),						// as they are declared above.
 		rStick(RTANK_JOY_USB),
 		pickStick(SHOOTER_JOY_USB),
@@ -56,15 +40,12 @@ public:
 		lCode (1, CODE_LT_A, 1, CODE_LT_B, false),
 		rCode (1, CODE_RT_A, 1, CODE_RT_B, true),
 		autoMove(0.1, 0.1, 2.0, 15*12.0),
-		lPIDout(),
-		rPIDout(),
-		//lLoop(0.1, 0.001, 0.0, lCode, lPIDout,0.05),
-		//rLoop(0.1, 0.001, 0.0, rCode, rPIDout,0.05)
-		lLoop(0.1, 0.001, 0.0, lCode, lPIDout,0.05),
-		rLoop(0.1, 0.001, 0.0, rCode, rPIDout,0.05)
+		lLoop(0.1, 0.001, 0.0, &lCode, &LeftDrive,0.05),
+		rLoop(0.1, 0.001, 0.0, &rCode, &RightDrive,0.05)
 	  
 	{
-		myRobot.SetExpiration(0.1);
+		LeftDrive.SetExpiration(0.1);
+		RightDrive.SetExpiration(0.1);
 		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
 	}							//When set to zero, periodic tasks are called based on when DS packets come in
 	
@@ -109,16 +90,20 @@ void RobotDemo::DisabledPeriodic() {
  */
 void RobotDemo::AutonomousInit() {
 	m_autoFirst = true;
-	myRobot.TankDrive((float)0, 0.0, true);//make sure the robot is stopped
+	LeftDrive.SetMotorOutput(0.0);
+	RightDrive.SetMotorOutput(0.0);
 	pump.Start();//turn on compressor
 	lCode.Reset();
 	rCode.Reset();
+	lCode.SetDistancePerPulse(INCH_PER_CNT);
+	rCode.SetDistancePerPulse(INCH_PER_CNT);
 	lCode.Start();
 	rCode.Start();
 	lLoop.SetSetpoint(0.0);
 	rLoop.SetSetpoint(0.0);
-	lLoop.Enable();
+	lLoop.Enable(); // Turn on PID control loop
 	rLoop.Enable();
+	m_AutoStartTime = Timer::GetPPCTimestamp();
 	printf("Autonomous Init");
 }
 
@@ -130,9 +115,12 @@ void RobotDemo::AutonomousInit() {
  * 
  */
 void RobotDemo::AutonomousPeriodic() {
-	lLoop.SetSetpoint(60.0*1000);
-	rLoop.SetSetpoint(60.0*1000);
-	myRobot.TankDrive(lPIDout.GetdriveVal(), rPIDout.GetdriveVal(), false);
+	
+	double currentTime = Timer::GetPPCTimestamp();
+	double desiredPos = autoMove.Position(currentTime);
+	printf("Setting setpoint to %f inches\n",desiredPos);
+	lLoop.SetSetpoint(desiredPos);
+	rLoop.SetSetpoint(desiredPos);
 }
 
 /**
@@ -142,8 +130,10 @@ void RobotDemo::AutonomousPeriodic() {
  * the robot enters teleop mode.
  */
 void RobotDemo::TeleopInit() {
-	lCode.Start();
+	lCode.Start();	// Start Encoders if not already started
 	rCode.Start();
+	lLoop.Disable(); // Turn off PID system
+	rLoop.Disable();
 	pump.Start();//turn on compressor
 	printf("Teleop Init");
 }
@@ -174,18 +164,27 @@ void RobotDemo::TeleopPeriodic() {
 	
 	if (frontDrive) {		//front is "forward"
 		if (lStick.GetRawButton(1)) {
-			myRobot.TankDrive(-lStick.GetY(), -rStick.GetY(), true);	//with turbo
+			//myRobot.TankDrive(-lStick.GetY(), -rStick.GetY(), true);	//with turbo
+			LeftDrive.SetMotorOutput(-lStick.GetY());
+			RightDrive.SetMotorOutput(-rStick.GetY());
 		}
 		else {
-			myRobot.TankDrive(-lStick.GetY()*0.85, -rStick.GetY()*0.85, true);	//without turbo
+			//myRobot.TankDrive(-lStick.GetY()*0.85, -rStick.GetY()*0.85, true);	//without turbo
+			LeftDrive.SetMotorOutput(-lStick.GetY()*0.85);
+			RightDrive.SetMotorOutput(-rStick.GetY()*0.85);
 		}
 	}
 	if (!frontDrive) {		//rear is "forward"
 		if (lStick.GetRawButton(1)) {	
-			myRobot.TankDrive(rStick.GetY(), lStick.GetY(), true);	//with turbo
+			//myRobot.TankDrive(rStick.GetY(), lStick.GetY(), true);	//with turbo
+			LeftDrive.SetMotorOutput(rStick.GetY()*0.85);
+			RightDrive.SetMotorOutput(lStick.GetY()*0.85);
+			
 		}
 		else {
-			myRobot.TankDrive(rStick.GetY()*0.85, lStick.GetY()*0.85, true);	//without turbo
+			//myRobot.TankDrive(rStick.GetY()*0.85, lStick.GetY()*0.85, true);	//without turbo
+			LeftDrive.SetMotorOutput(lStick.GetY()*0.85);
+			RightDrive.SetMotorOutput(rStick.GetY()*0.85);
 		}
 	}
 	
