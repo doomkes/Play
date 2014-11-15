@@ -67,7 +67,7 @@
 #define DIO_14
 
 //MISC.
-#define INCH_PER_CNT (12.566/1000) //wheel circumference devided by lines-per-revolution
+#define INCH_PER_CNT (12.566/250) //wheel circumference devided by lines-per-revolution
 
 #endif
 

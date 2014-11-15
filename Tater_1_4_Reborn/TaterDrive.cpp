@@ -109,7 +109,8 @@ void TaterDrive::SetInvertedMotor(bool isInverted)
 
 
 void TaterDrive::PIDWrite (float output){
-	SetMotorOutput(output); // forward the setting from the PID controller.
+	//printf("PIDOutput %f\n", output);
+	SetMotorOutput(-output); // forward the setting from the PID controller.
 }
 
 void TaterDrive::SetExpiration(float timeout)

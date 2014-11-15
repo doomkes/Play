@@ -79,3 +79,7 @@ float TrapezoidalMoveProfile::Position(float time){
 		
 	return position;
 }
+
+float TrapezoidalMoveProfile::GetEndTime(void){
+	return m_t3;
+}

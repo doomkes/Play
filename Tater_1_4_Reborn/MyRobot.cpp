@@ -39,9 +39,9 @@ public:
 	    shoot(),
 		lCode (1, CODE_LT_A, 1, CODE_LT_B, false),
 		rCode (1, CODE_RT_A, 1, CODE_RT_B, true),
-		autoMove(0.1, 0.1, 2.0, 15*12.0),
-		lLoop(0.1, 0.001, 0.0, &lCode, &LeftDrive,0.05),
-		rLoop(0.1, 0.001, 0.0, &rCode, &RightDrive,0.05)
+		autoMove(10.0, 10.0, 60.0, 10*12.0),
+		lLoop(0.05, 0.001, 0.0, &rCode, &LeftDrive,0.02),
+		rLoop(0.05, 0.001, 0.0, &lCode, &RightDrive,0.02)
 	  
 	{
 		LeftDrive.SetExpiration(0.1);
@@ -58,6 +58,13 @@ public:
 void RobotDemo::RobotInit() {
 	printf("Robot Init");
 	shoot.Init(&rStick); // tell the shooter object which stick controls the shooter
+	LeftDrive.SetInvertedMotor(true);
+	rCode.SetReverseDirection(true);
+	lCode.SetDistancePerPulse(INCH_PER_CNT);
+	rCode.SetDistancePerPulse(INCH_PER_CNT);
+	lLoop.SetInputRange(-1200,1200);
+	rLoop.SetInputRange(-1200,1200);
+
 }
 
 /**
@@ -68,6 +75,8 @@ void RobotDemo::RobotInit() {
  */
 void RobotDemo::DisabledInit() {
 	printf("Disabled Init");
+	lLoop.Disable();
+	rLoop.Disable();
 }
 
 /**
@@ -95,8 +104,6 @@ void RobotDemo::AutonomousInit() {
 	pump.Start();//turn on compressor
 	lCode.Reset();
 	rCode.Reset();
-	lCode.SetDistancePerPulse(INCH_PER_CNT);
-	rCode.SetDistancePerPulse(INCH_PER_CNT);
 	lCode.Start();
 	rCode.Start();
 	lLoop.SetSetpoint(0.0);
@@ -115,12 +122,27 @@ void RobotDemo::AutonomousInit() {
  * 
  */
 void RobotDemo::AutonomousPeriodic() {
+	float fakeTime;
+	double desiredPos, t3;
+	double currentTime = Timer::GetPPCTimestamp()-m_AutoStartTime;
+	t3 = autoMove.GetEndTime();
+	if (currentTime <= t3) {
+		desiredPos = -autoMove.Position(currentTime);
+	}
+	else {
+		if (currentTime <= 2 * t3){
+			desiredPos = -autoMove.Position(2 * t3 -currentTime);
+		}
+		else {
+			desiredPos = -autoMove.Position(0);
+		}
+	}
+	//desiredPos = 60;
+	printf("Setting setpoint to %f inches left %f right %f lefte %f righte %f \n",desiredPos, lCode.GetDistance(), rCode.GetDistance(), lLoop.GetError(), rLoop.GetError() );
 	
-	double currentTime = Timer::GetPPCTimestamp();
-	double desiredPos = autoMove.Position(currentTime);
-	printf("Setting setpoint to %f inches\n",desiredPos);
 	lLoop.SetSetpoint(desiredPos);
 	rLoop.SetSetpoint(desiredPos);
+
 }
 
 /**
@@ -130,6 +152,8 @@ void RobotDemo::AutonomousPeriodic() {
  * the robot enters teleop mode.
  */
 void RobotDemo::TeleopInit() {
+	lCode.Reset();
+	rCode.Reset();
 	lCode.Start();	// Start Encoders if not already started
 	rCode.Start();
 	lLoop.Disable(); // Turn off PID system
@@ -147,8 +171,9 @@ void RobotDemo::TeleopInit() {
 void RobotDemo::TeleopPeriodic() {
 	static bool frontDrive = true;	
 	shoot.Run();// check for button pushes and manange shots
-	double lCodeVal = lCode.GetRaw()*INCH_PER_CNT;
-	double rCodeVal = rCode.GetRaw()*INCH_PER_CNT;
+	double lCodeVal = lCode.GetDistance();
+	double rCodeVal = rCode.GetDistance();
+	
 	printf("Left = %f Right = %f\n",rCodeVal, lCodeVal);
 
 	
@@ -160,31 +185,31 @@ void RobotDemo::TeleopPeriodic() {
 		frontDrive = false;
 		arcReactor.Set(true);	//activate arc-reactor
 	}
-	
+	printf("Lstick %f\n",lStick.GetY());
 	
 	if (frontDrive) {		//front is "forward"
 		if (lStick.GetRawButton(1)) {
 			//myRobot.TankDrive(-lStick.GetY(), -rStick.GetY(), true);	//with turbo
-			LeftDrive.SetMotorOutput(-lStick.GetY());
-			RightDrive.SetMotorOutput(-rStick.GetY());
+			LeftDrive.SetMotorOutput(lStick.GetY());
+			RightDrive.SetMotorOutput(rStick.GetY());
 		}
 		else {
 			//myRobot.TankDrive(-lStick.GetY()*0.85, -rStick.GetY()*0.85, true);	//without turbo
-			LeftDrive.SetMotorOutput(-lStick.GetY()*0.85);
-			RightDrive.SetMotorOutput(-rStick.GetY()*0.85);
+			LeftDrive.SetMotorOutput(lStick.GetY()*0.85);
+			RightDrive.SetMotorOutput(rStick.GetY()*0.85);
 		}
 	}
 	if (!frontDrive) {		//rear is "forward"
 		if (lStick.GetRawButton(1)) {	
 			//myRobot.TankDrive(rStick.GetY(), lStick.GetY(), true);	//with turbo
-			LeftDrive.SetMotorOutput(rStick.GetY()*0.85);
-			RightDrive.SetMotorOutput(lStick.GetY()*0.85);
+			LeftDrive.SetMotorOutput(-rStick.GetY());
+			RightDrive.SetMotorOutput(-lStick.GetY());
 			
 		}
 		else {
 			//myRobot.TankDrive(rStick.GetY()*0.85, lStick.GetY()*0.85, true);	//without turbo
-			LeftDrive.SetMotorOutput(lStick.GetY()*0.85);
-			RightDrive.SetMotorOutput(rStick.GetY()*0.85);
+			LeftDrive.SetMotorOutput(-rStick.GetY()*0.85);
+			RightDrive.SetMotorOutput(-lStick.GetY()*0.85);
 		}
 	}
 	

@@ -21,5 +21,6 @@ public:
 	void SetDistance(float);
 	void CalcParams(void);
 	float Position(float time);
+	float GetEndTime(void);
 
 };
