@@ -1,7 +1,7 @@
 #include "WPILib.h"
 #include "Shooter.h"
 #include "RobotMap.h"
-#include "TrapezoidalMove.h"
+//#include "TrapezoidalMove.h"
 
 
 /**
@@ -17,8 +17,8 @@ class RobotDemo : public IterativeRobot
 	Compressor pump;
 	Shooter shoot;
 	bool m_autoFirst;
-	Encoder lCode, rCode;
-	TrapezoidalMoveProfile autoMove;
+	//Encoder lCode, rCode;
+	//TrapezoidalMoveProfile autoMove;
 
 public:
 	RobotDemo(): 									// list initialization
@@ -30,10 +30,10 @@ public:
 		forkUp(1, FORK_UP_SOL),
 		arcReactor (1, ARC_RCTR_SOL),
 	    pump(1, PRESS_SW_DIO, 1, COMPRESSOR_RLY),
-	    shoot(),
-		lCode (1, CODE_LT_A, 1, CODE_LT_B, false),
-		rCode (1, CODE_RT_A, 1, CODE_RT_B, true),
-		autoMove(0.1, 0.1, 2.0, 15*12.0)
+	    shoot()
+		//lCode (1, CODE_LT_A, 1, CODE_LT_B, false),
+		//rCode (1, CODE_RT_A, 1, CODE_RT_B, true),
+		//autoMove(0.1, 0.1, 2.0, 15*12.0)
 	  
 	{
 		myRobot.SetExpiration(0.1);
@@ -139,8 +139,8 @@ void RobotDemo::AutonomousPeriodic() {
  * the robot enters teleop mode.
  */
 void RobotDemo::TeleopInit() {
-	lCode.Start();
-	rCode.Start();
+	//lCode.Start();
+	//rCode.Start();
 	pump.Start();//turn on compressor
 	printf("Teleop Init");
 }
@@ -152,13 +152,70 @@ void RobotDemo::TeleopInit() {
  * rate while the robot is in teleop mode.
  */
 void RobotDemo::TeleopPeriodic() {
-	static bool frontDrive = true;	
+	static bool frontDrive = true;
+	static bool arcadeDrive = false;
+	static int switchState = 0;
+	static int counter = 0;
 	shoot.Run();// check for button pushes and manange shots
-	double lCodeVal = lCode.GetRaw()*INCH_PER_CNT;
-	double rCodeVal = rCode.GetRaw()*INCH_PER_CNT;
-	printf("Left = %f Right = %f\n",rCodeVal, lCodeVal);
+	//double lCodeVal = lCode.GetRaw()*INCH_PER_CNT;
+	//double rCodeVal = rCode.GetRaw()*INCH_PER_CNT;
+	//printf("Left = %f Right = %f\n",rCodeVal, lCodeVal);
 
+	//switch between arcade/tank drive mode
+	if ((lStick.GetThrottle() < 2)&&(lStick.GetThrottle() > 5)&&(lStick.GetThrottle() > 5)) {
+		switch (switchState) {
+			case 0:
+				counter = 0;
+				if (rStick.GetRawButton(6)) {
+					switchState = 1;
+				}
+				break;
+			case 1:
+				counter++;
+				if (!rStick.GetRawButton(6)) {
+					if ((counter >= 25)&&(counter <= 75)) {
+						switchState = 2;
+						counter = 0;
+					}
+					else {
+						switchState = 0;
+					}
+				}
+				break;
+			case 2:
+				counter++;
+				if (rStick.GetRawButton(11)) {
+					if ((counter >= 25)&&(counter <=75)) {
+						switchState = 3;
+						counter = 0;
+					}
+					else {
+						switchState = 0;
+					}
+				}
+				break;
+			case 4:
+				if (!rStick.GetRawButton(11)) {
+					if ((counter >= 25)&&(counter <= 75)) {
+						if (arcadeDrive) {
+							arcadeDrive = false;
+						}
+						else {
+							arcadeDrive = true;
+						}
+					}
+					else {
+						switchState = 0;
+					}
+				}
+				break;
+		}
+	}
+	else {
+		switchState = 0;
+	}
 	
+	//choose front/back
 	if (lStick.GetRawButton(3)) {
 		frontDrive = true;
 		arcReactor.Set(false);	//de-activate arc-reactor
@@ -168,25 +225,29 @@ void RobotDemo::TeleopPeriodic() {
 		arcReactor.Set(true);	//activate arc-reactor
 	}
 	
-	
-	if (frontDrive) {		//front is "forward"
-		if (lStick.GetRawButton(1)) {
-			myRobot.TankDrive(-lStick.GetY(), -rStick.GetY(), true);	//with turbo
+	if (!arcadeDrive) { //not arcade drive
+		if (frontDrive) {		//front is "forward"
+			if (lStick.GetRawButton(1)) {
+				myRobot.TankDrive(-lStick.GetY(), -rStick.GetY(), true);	//with turbo
+			}
+			else {
+				myRobot.TankDrive(-lStick.GetY()*0.85, -rStick.GetY()*0.85, true);	//without turbo
+			}
 		}
-		else {
-			myRobot.TankDrive(-lStick.GetY()*0.85, -rStick.GetY()*0.85, true);	//without turbo
-		}
+		if (!frontDrive) {		//rear is "forward"
+			if (lStick.GetRawButton(1)) {	
+				myRobot.TankDrive(rStick.GetY(), lStick.GetY(), true);	//with turbo
+			}
+			else {
+				myRobot.TankDrive(rStick.GetY()*0.85, lStick.GetY()*0.85, true);	//without turbo
+			}
+		}	
 	}
-	if (!frontDrive) {		//rear is "forward"
-		if (lStick.GetRawButton(1)) {	
-			myRobot.TankDrive(rStick.GetY(), lStick.GetY(), true);	//with turbo
-		}
-		else {
-			myRobot.TankDrive(rStick.GetY()*0.85, lStick.GetY()*0.85, true);	//without turbo
-		}
+	else { //arcade drive
+		myRobot.ArcadeDrive(rStick, false);
 	}
 	
-	
+	//pickup forks
 	if (pickStick.GetY() < -0.1){
 		forkDown.Set(true);
 	}
@@ -201,8 +262,6 @@ void RobotDemo::TeleopPeriodic() {
 		
 		forkUp.Set(false);
 	}
-	
-	
 	
 }
 
