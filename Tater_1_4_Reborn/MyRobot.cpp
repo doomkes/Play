@@ -239,20 +239,18 @@ void RobotDemo::TeleopPeriodic() {
 			}
 		}
 		//pickup forks for tank mode
-		if (pickStick.GetY() < -0.1){
-			forkDown.Set(true);
-		}
-		else {
+		if ((pickStick.GetRawButton(2))||(pickStick.GetY() < 0.1)) {	//buttton overides all other controls 
 			forkDown.Set(false);
-		}
-
-		if (pickStick.GetY() > 0.1){
-				forkUp.Set(true);
+			forkUp.Set(true);	
 		}
 		else {
-
-			forkUp.Set(false);
-		}
+			if (pickStick.GetY() > 0.1){
+				forkUp.Set(true);
+			}
+			else {
+				forkUp.Set(false);
+			}
+		}	
 	}
 	else { //arcade drive mode
 		myRobot.ArcadeDrive(-rStick.GetY(),-rStick.GetX(), true);
