@@ -262,13 +262,18 @@ void RobotDemo::TeleopPeriodic() {
 		else {
 			forkDown.Set(false);
 		}
-
 		if (lStick.GetRawButton(3)){
 				forkUp.Set(true);
 		}
 		else {
-
 			forkUp.Set(false);
+		}
+		//arc reactor (just for fun)
+		if (pickStick.GetRawButton(2)) {
+			arcReactor.Set(true);
+		}	
+		else {
+			arcReactor.Set(false);
 		}
 	}
 }
