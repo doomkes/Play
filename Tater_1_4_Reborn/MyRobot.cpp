@@ -152,10 +152,10 @@ void RobotDemo::TeleopInit() {
  * rate while the robot is in teleop mode.
  */
 void RobotDemo::TeleopPeriodic() {
-	static bool frontDrive = true;
-	static bool arcadeDrive = false;
 	static int switchState = 0;
 	static int counter = 0;
+	static bool frontDrive = true;
+	static bool arcadeDrive = false;
 	shoot.Run();// check for button pushes and manange shots
 	
 	//switch between arcade/tank drive mode
@@ -211,17 +211,16 @@ void RobotDemo::TeleopPeriodic() {
 		switchState = 0;
 	}
 	
+	//choose front/back
+	if (lStick.GetRawButton(3)) {
+		frontDrive = true;
+		arcReactor.Set(false);	//de-activate arc-reactor
+	}
+	if (lStick.GetRawButton(2)) {
+		frontDrive = false;
+		arcReactor.Set(true);	//activate arc-reactor
+	}
 	if (!arcadeDrive) { //tank drive mode
-		//choose front/back
-		if (lStick.GetRawButton(3)) {
-			frontDrive = true;
-			arcReactor.Set(false);	//de-activate arc-reactor
-		}
-		if (lStick.GetRawButton(2)) {
-			frontDrive = false;
-			arcReactor.Set(true);	//activate arc-reactor
-		}
-		
 		if (frontDrive) {		//front is "forward"
 			if (lStick.GetRawButton(1)) {
 				myRobot.TankDrive(-lStick.GetY(), -rStick.GetY(), true);	//with turbo
@@ -239,12 +238,12 @@ void RobotDemo::TeleopPeriodic() {
 			}
 		}
 		//pickup forks for tank mode
-		if ((pickStick.GetRawButton(2))||(pickStick.GetY() < 0.1)) {	//buttton overides all other controls 
+		if ((pickStick.GetRawButton(5))||(pickStick.GetY() < 0.1)) {	//buttton overides all other controls 
 			forkDown.Set(false);
 			forkUp.Set(true);	
 		}
 		else {
-			if (pickStick.GetY() > 0.1){
+			if (pickStick.GetRawButton(4)){
 				forkUp.Set(true);
 			}
 			else {
@@ -253,7 +252,12 @@ void RobotDemo::TeleopPeriodic() {
 		}	
 	}
 	else { //arcade drive mode
-		myRobot.ArcadeDrive(-rStick.GetY(),-rStick.GetX(), true);
+		if (frontDrive){
+			myRobot.ArcadeDrive(-rStick.GetY(),-rStick.GetX(), true);
+		}
+		if (!frontDrive){
+			myRobot.ArcadeDrive(rStick.GetY(),-rStick.GetX(), true);
+		}
 		
 		//pickup forks for arcade mode
 		if (lStick.GetRawButton(2)){
@@ -267,13 +271,6 @@ void RobotDemo::TeleopPeriodic() {
 		}
 		else {
 			forkUp.Set(false);
-		}
-		//arc reactor (just for fun)
-		if (pickStick.GetRawButton(2)) {
-			arcReactor.Set(true);
-		}	
-		else {
-			arcReactor.Set(false);
 		}
 	}
 }
