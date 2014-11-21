@@ -22,6 +22,6 @@ public:
 	~Shooter();
 	void Init(Joystick *joy);
 	void HighShot();
-	void Run();
+	void Run(bool paradeDrive);
 
 };
