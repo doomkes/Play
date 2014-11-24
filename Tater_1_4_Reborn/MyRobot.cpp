@@ -1,6 +1,7 @@
 #include "WPILib.h"
 #include "Shooter.h"
 #include "RobotMap.h"
+#include "UserInterface.h"
 //#include "TrapezoidalMove.h"
 
 /**
@@ -15,6 +16,8 @@ class RobotDemo : public IterativeRobot
 	Solenoid forkDown, forkUp, arcReactor;
 	Compressor pump;
 	Shooter shoot;
+	UserInterface ui;
+	struct TaterUserInput tui;
 	bool m_autoFirst;
 	bool paradeDrive;
 	//Encoder lCode, rCode;
@@ -32,6 +35,8 @@ public:
 		arcReactor (1, ARC_RCTR_SOL),
 	    pump(1, PRESS_SW_DIO, 1, COMPRESSOR_RLY),
 	    shoot(),
+	    ui(),
+	    tui(),  // default to all zeros.
 	    m_autoFirst(true),
 	    paradeDrive(true)
 		//lCode (1, CODE_LT_A, 1, CODE_LT_B, false),
@@ -51,11 +56,7 @@ public:
  */
 void RobotDemo::RobotInit() {
 	printf("Robot Init");
-	paradeDrive = DriverStation::GetInstance()->GetDigitalIn(2);
-	if(paradeDrive)
-		shoot.Init(&lStick); // tell the shooter object which stick controls the shooter
-	else
-		shoot.Init(&rStick); // tell the shooter object which stick controls the shooter
+	ui.Init();
 }
 
 /**
@@ -77,11 +78,6 @@ void RobotDemo::DisabledInit() {
 void RobotDemo::DisabledPeriodic() {
 	//static int count;
 	//printf("Disabled Periodic %i\n", count++);
-	//count--;
-	//DriverStation *ds = DriverStation::GetInstance();
-	
-	//printf("Batery Voltage %f \n",ds->GetBatteryVoltage());
-	//printf("Digital Input 2: %i \n",ds->GetDigitalIn(2));
 }
 
 /**
@@ -154,11 +150,6 @@ void RobotDemo::TeleopInit() {
 	//rCode.Start();
 	pump.Start();//turn on compressor
 	printf("Teleop Init");
-	paradeDrive = DriverStation::GetInstance()->GetDigitalIn(2);
-	if(paradeDrive)
-			shoot.Init(&lStick); // tell the shooter object which stick controls the shooter
-		else
-			shoot.Init(&rStick); // tell the shooter object which stick controls the shooter
 }
 
 /**
@@ -170,95 +161,47 @@ void RobotDemo::TeleopInit() {
 void RobotDemo::TeleopPeriodic() {
 	static bool frontDrive = true;
 	//float voltage;
-	shoot.Run(paradeDrive);// check for button pushes and manange shots
-	//double lCodeVal = lCode.GetRaw()*INCH_PER_CNT;
-	//double rCodeVal = rCode.GetRaw()*INCH_PER_CNT;
-	//printf("Left = %f Right = %f\n",rCodeVal, lCodeVal);
-	//printf("axis 0:%f\t 1:%f\t 2:%f\n",lStick.GetRawAxis(3),rStick.GetRawAxis(3));
-	//switch between arcade/tank drive mode
-	//voltage = DriverStation.getInstance()->getBatteryVoltage();
-	//printf("digital IO 2 %f", voltage);
-	if (!paradeDrive) {
-		//choose front/back
-		if (lStick.GetRawButton(3)) {
-			frontDrive = true;
-			arcReactor.Set(false);	//de-activate arc-reactor
-		}
-		if (lStick.GetRawButton(2)) {
-			frontDrive = false;
-			arcReactor.Set(true);	//activate arc-reactor
-		}
-		
-		if (frontDrive) {		//front is "forward"
-			if (lStick.GetRawButton(1)) {
-				myRobot.TankDrive(-lStick.GetY(), -rStick.GetY(), true);	//with turbo
-			}
-			else {
-				myRobot.TankDrive(-lStick.GetY()*0.6, -rStick.GetY()*0.6, true);	//without turbo
-			}
-		}
-		if (!frontDrive) {		//rear is "forward"
-			if (lStick.GetRawButton(1)) {	
-				myRobot.TankDrive(rStick.GetY(), lStick.GetY(), true);	//with turbo
-			}
-			else {
-				myRobot.TankDrive(rStick.GetY()*0.6, lStick.GetY()*0.6, true);	//without turbo
-			}	
-		}
-		if (pickStick.GetY() < -0.1){
-				forkDown.Set(true);
-			}
-		else {
-			forkDown.Set(false);
-		}
+	ui.GetData(&tui); // update user interface structure "tater user interface"
+	shoot.Run2(&tui);// check for button pushes and manange shots
+
+	//choose front/back
+	if (tui.frontDrive) {
+		frontDrive = true;
+		arcReactor.Set(false);	//de-activate arc-reactor
+	}
+	if (tui.revDrive) {
+		frontDrive = false;
+		arcReactor.Set(true);	//activate arc-reactor
+	}
 	
-		if (pickStick.GetY() > 0.1){
-			forkUp.Set(true);
+	if (frontDrive) {		//front is "forward"
+		if (tui.turbo) {
+			myRobot.TankDrive(-tui.leftVal, -tui.rightVal, true);	//with turbo
 		}
 		else {
-			forkUp.Set(false);
+			myRobot.TankDrive(-tui.leftVal*0.6, -tui.rightVal*0.6, true);	//without turbo
 		}
 	}
-	if (paradeDrive) {
-		//choose front/back
-		if (lStick.GetRawButton(3)) {
-			frontDrive = true;
-			arcReactor.Set(false);	//de-activate arc-reactor
+	if (!frontDrive) {		//rear is "forward"
+		if (lStick.GetRawButton(1)) {	
+			myRobot.TankDrive(tui.rightVal, tui.leftVal, true);	//with turbo
 		}
-		if (lStick.GetRawButton(2)) {
-			frontDrive = false;
-			arcReactor.Set(true);	//activate arc-reactor
-		}
-		
-		if (frontDrive) {		//front is "forward"
-			if ((lStick.GetRawButton(11))||(lStick.GetRawButton(12))) {
-				myRobot.TankDrive(-lStick.GetY(), -lStick.GetRawAxis(4), true);	//with turbo
-			}
-			else {
-				myRobot.TankDrive(-lStick.GetY()*0.6, -lStick.GetRawAxis(4)*0.6, true);	//without turbo
-			}
-		}
-		if (!frontDrive) {		//rear is "forward"
-			if ((lStick.GetRawButton(11))||(lStick.GetRawButton(12))) {	
-				myRobot.TankDrive(lStick.GetRawAxis(4), lStick.GetY(), true);	//with turbo
-			}
-			else {
-				myRobot.TankDrive(lStick.GetRawAxis(4)*0.6, lStick.GetY()*0.6, true);	//without turbo
-			}	
-		}
-		if (lStick.GetRawButton(8)){
+		else {
+			myRobot.TankDrive(tui.rightVal*0.6, tui.leftVal*0.6, true);	//without turbo
+		}	
+	}
+	if (tui.forkDown){
 			forkDown.Set(true);
 		}
-		else {
-			forkDown.Set(false);
-		}
-			
-		if (lStick.GetRawButton(6)){
-			forkUp.Set(true);
-		}
-		else {
-			forkUp.Set(false);
-		}
+	else {
+		forkDown.Set(false);
+	}
+
+	if (tui.forkUp){
+		forkUp.Set(true);
+	}
+	else {
+		forkUp.Set(false);
 	}
 }
 

@@ -6,13 +6,13 @@
  */
 #include "WPILib.h"
 #include "RobotMap.h"
+#include "UserInterface.h"
 #include <cstdio>
 /*
  * Description:
  */
 class Shooter {
 	Solenoid pow;
-	Joystick * shooter_stick; // pointer to joystic for shooting control
 	int m_state;
 	int m_recordButton;
 	int m_loopCount;
@@ -20,8 +20,9 @@ class Shooter {
 public:
 	Shooter();
 	~Shooter();
-	void Init(Joystick *joy);
-	void HighShot();
-	void Run(bool paradeDrive);
+	void Init(void);
+	void HighShot(void);
+	void Run(TaterUserInput *);
+	void Run2(TaterUserInput *);
 
 };
