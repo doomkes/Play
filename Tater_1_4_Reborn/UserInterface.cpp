@@ -24,6 +24,7 @@ UserInterface::~UserInterface()
 }
 void UserInterface::Init(){
 	m_paradeDrive = DriverStation::GetInstance()->GetDigitalIn(2);
+	if (m_paradeDrive) printf("Parade Drive it is!!!\n");
 }
 
 // When in parade mode, The gamepad show up on Port 2
@@ -34,18 +35,18 @@ void UserInterface::Init(){
 void  UserInterface::GetData(TaterUserInput *tui){
 	
 	if(m_paradeDrive){
-		tui->frontDrive = joy2.GetRawButton(3);
-		tui->revDrive 	= joy2.GetRawButton(2);
-		tui->turbo		= joy2.GetRawButton(11) | joy2.GetRawButton(12);
-		tui->leftVal	= joy2.GetY();
-		tui->rightVal	= joy2.GetRawAxis(4);
+		tui->frontDrive = joy1.GetRawButton(3);
+		tui->revDrive 	= joy1.GetRawButton(2);
+		tui->turbo		= joy1.GetRawButton(11) | joy1.GetRawButton(12);
+		tui->leftVal	= joy1.GetY();
+		tui->rightVal	= joy1.GetRawAxis(4);
 		
-		tui->highShot 	= joy2.GetRawButton(7);
-		tui->trussShot 	= joy2.GetRawButton(5);
-		tui->bumpShot 	= joy2.GetRawButton(9);
+		tui->highShot 	= joy1.GetRawButton(7);
+		tui->trussShot 	= joy1.GetRawButton(5);
+		tui->bumpShot 	= joy1.GetRawButton(9);
 	
-		tui->forkDown	= joy2.GetRawButton(6);	
-		tui->forkUp		= joy2.GetRawButton(8);	  
+		tui->forkDown	= joy1.GetRawButton(6);	
+		tui->forkUp		= joy1.GetRawButton(8);	  
 	 }
 	 else{
 

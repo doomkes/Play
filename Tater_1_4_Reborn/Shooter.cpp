@@ -7,21 +7,84 @@
 
 #include "Shooter.h"
 #include "UserInterface.h"
+#include <taskLib.h>
+
+
+static void ShootBall(Shooter *s) 
+{
+while(1){
+ 		int startTime =GetFPGATime();
+		switch(s->GetShotType())
+		{
+		case HIGH_SHOT:
+			printf("High Shot ----> On:%lu  ",GetFPGATime()-startTime);
+			s->SolenoidOn(true);
+			Wait(0.2);
+			printf("Off:%lu \n\n",GetFPGATime()-startTime);
+			s->SolenoidOn(false);
+			break;
+		case TRUSS_SHOT:
+			printf("Truss Shot ----> On:%lu   ",GetFPGATime()-startTime);
+			s->SolenoidOn(true);
+			Wait(0.13);
+			printf("Off:%lu\n\n",GetFPGATime()-startTime);
+			s->SolenoidOn(false);	
+			break;
+		case BUMP_SHOT:
+			printf("Bump Shot ----> On:%lu  ",GetFPGATime()-startTime);		
+			s->SolenoidOn(true);
+			Wait(0.01);
+			printf("Off:%lu   ",GetFPGATime()-startTime);		
+			s->SolenoidOn(false);
+			Wait(0.08);
+			printf("On:%lu   ",GetFPGATime()-startTime);		
+			s->SolenoidOn(true);
+			Wait(0.06);
+			printf("Off:%lu\n\n",GetFPGATime()-startTime);		
+			s->SolenoidOn(false);
+			break;
+		case NO_SHOT:
+			break;
+		}
+	
+		Wait(0.1); // hog prevention
+		s->Complete();
+}
+/*	while(1){
+		printf("myTask\n");
+		s->SolenoidOn(true);
+		Wait(0.5);
+		s->SolenoidOn(false);
+		Wait(0.5);
+	}
+ */
+			
+		
+}
 
 Shooter::Shooter(): // Constructor
-			pow(1,PNUEM_SOL) // init list
+	pow(1,PNUEM_SOL), // init list
+	m_task ("Shooter", (FUNCPTR)ShootBall),
+	m_shotType(NO_SHOT),
+	m_state(0),
+    m_recordButton(0),
+    m_loopCount(0)
 {
-	this->Init();
+	//m_task.Start();
+	//m_task.Suspend();
 }
 
 Shooter::~Shooter() // Destructor
 {	
 }
+void Shooter::SolenoidOn(bool value){
+	pow.Set(value);
+	return;
+}
 
-void Shooter::Init(){
-	m_state = 0;
-	m_recordButton = 0;
-	m_loopCount = 0;
+void Shooter::Init(void){
+	m_task.Start((int32_t)this);
+	
 }
 
 void Shooter::HighShot()
@@ -29,6 +92,7 @@ void Shooter::HighShot()
 	pow.Set(true);
 	Wait(0.3);
 	pow.Set(false);
+	return;
 	}
 
 void Shooter::Run(TaterUserInput *tui){
@@ -125,26 +189,35 @@ void Shooter::Run(TaterUserInput *tui){
 void Shooter::Run2(TaterUserInput *tui){
 	static int  lastHighShot = 0,lastTrussShot = 0,lastBumpShot = 0;
 	//shooter code -- let the rest of the code starve while performing shots.
+	int startTime =GetFPGATime();
 	if (tui->highShot && !lastHighShot) 
 		{
+		printf("High Shot ----> On:%lu  ",GetFPGATime()-startTime);
 		pow.Set(true);
 		Wait(0.2);
+		printf("Off:%lu \n\n",GetFPGATime()-startTime);
 		pow.Set(false);
 		}
 	else if (tui->trussShot && !lastTrussShot) 
 		{
+		printf("Truss Shot ----> On:%lu   ",GetFPGATime()-startTime);
 		pow.Set(true);
 		Wait(0.13);
+		printf("Off:%lu\n\n",GetFPGATime()-startTime);
 		pow.Set(false);		
 		}
 	else if (tui->bumpShot && !lastBumpShot) 
 		{
+		printf("Bump Shot ----> On:%lu  ",GetFPGATime()-startTime);		
 		pow.Set(true);
 		Wait(0.01);
+		printf("Off:%lu   ",GetFPGATime()-startTime);		
 		pow.Set(false);
 		Wait(0.08);
+		printf("On:%lu   ",GetFPGATime()-startTime);		
 		pow.Set(true);
-		Wait(0.60);
+		Wait(0.06);
+		printf("Off:%lu\n\n",GetFPGATime()-startTime);		
 		pow.Set(false);
 		}
 	
@@ -153,3 +226,37 @@ void Shooter::Run2(TaterUserInput *tui){
 	lastBumpShot = tui->bumpShot;
 
 }
+
+void Shooter::Run3(TaterUserInput *tui){
+	static int  lastHighShot = 0,lastTrussShot = 0,lastBumpShot = 0;
+	//shooter code -- let the rest of the code starve while performing shots.
+	if(m_shotType == NO_SHOT){
+		if (tui->highShot && !lastHighShot){
+			m_shotType = HIGH_SHOT;			
+			m_task.Resume();
+			}
+		else if (tui->trussShot && !lastTrussShot){ 
+			m_shotType = TRUSS_SHOT;
+			m_task.Resume();			
+			}
+		else if (tui->bumpShot && !lastBumpShot){
+			m_shotType = BUMP_SHOT;
+			m_task.Resume();
+			}
+	}
+
+	lastHighShot = tui->highShot;
+	lastTrussShot = tui->trussShot;
+	lastBumpShot = tui->bumpShot;
+
+}
+void Shooter::Complete(void){
+	m_shotType = NO_SHOT;
+	//m_task.Suspend();
+	m_task.Suspend();
+}
+ShotType Shooter::GetShotType(void){
+	return m_shotType;
+	
+}
+

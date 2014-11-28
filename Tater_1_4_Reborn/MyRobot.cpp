@@ -44,8 +44,8 @@ public:
 		//autoMove(0.1, 0.1, 2.0, 15*12.0),
 	  
 	{
-		myRobot.SetExpiration(0.1);
-		this->SetPeriod(0); 	//Set update period to sync with robot control packets (20ms nominal)
+		myRobot.SetExpiration(0.3);
+		this->SetPeriod(0.02); 	//Set update period to sync with robot control packets (20ms nominal)
 	}							//When set to zero, periodic tasks are called based on when DS packets come in
 	
 /**
@@ -150,6 +150,8 @@ void RobotDemo::TeleopInit() {
 	//rCode.Start();
 	pump.Start();//turn on compressor
 	printf("Teleop Init");
+	ui.Init();
+	shoot.Init();
 }
 
 /**
@@ -160,9 +162,10 @@ void RobotDemo::TeleopInit() {
  */
 void RobotDemo::TeleopPeriodic() {
 	static bool frontDrive = true;
+
 	//float voltage;
 	ui.GetData(&tui); // update user interface structure "tater user interface"
-	shoot.Run2(&tui);// check for button pushes and manange shots
+	shoot.Run3(&tui);// check for button pushes and manange shots
 
 	//choose front/back
 	if (tui.frontDrive) {
