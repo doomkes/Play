@@ -12,7 +12,7 @@
 class RobotDemo : public IterativeRobot
 {
 	RobotDrive myRobot; 					// robot drive system
-	Joystick lStick, rStick, pickStick; 	// only joystick
+	//Joystick lStick, rStick, pickStick; 	// only joystick
 	Solenoid forkDown, forkUp, arcReactor;
 	Compressor pump;
 	Shooter shoot;
@@ -27,9 +27,9 @@ class RobotDemo : public IterativeRobot
 public:
 	RobotDemo(): 									// list initialization
 		myRobot(LEFT_MOTOR_PWM, RIGHT_MOTOR_PWM),	// these must be initialized in the same order
-		lStick(LTANK_JOY_USB),						// as they are declared above.
-		rStick(RTANK_JOY_USB),
-		pickStick(SHOOTER_JOY_USB),
+		//lStick(LTANK_JOY_USB),						// as they are declared above.
+		//rStick(RTANK_JOY_USB),
+		//pickStick(SHOOTER_JOY_USB),
 		forkDown(1, FORK_DN_SOL),
 		forkUp(1, FORK_UP_SOL),
 		arcReactor (1, ARC_RCTR_SOL),
@@ -57,6 +57,10 @@ public:
 void RobotDemo::RobotInit() {
 	printf("Robot Init");
 	ui.Init();
+	SmartDashboard::PutNumber("something", 0.13);
+	SmartDashboard::PutNumber("firstShot", 0.000);
+	SmartDashboard::PutNumber("delay", 0.000);
+	SmartDashboard::PutNumber("secondShot", 0.000);
 }
 
 /**
@@ -186,7 +190,7 @@ void RobotDemo::TeleopPeriodic() {
 		}
 	}
 	if (!frontDrive) {		//rear is "forward"
-		if (lStick.GetRawButton(1)) {	
+		if (tui.turbo) {	
 			myRobot.TankDrive(tui.rightVal, tui.leftVal, true);	//with turbo
 		}
 		else {

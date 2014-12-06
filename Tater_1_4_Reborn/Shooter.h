@@ -14,7 +14,8 @@ enum ShotType
 	NO_SHOT,
 	HIGH_SHOT,
 	TRUSS_SHOT,
-	BUMP_SHOT
+	BUMP_SHOT,
+	CUSTOM_SHOT
 };
 
 /*

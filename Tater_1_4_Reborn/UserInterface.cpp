@@ -44,9 +44,10 @@ void  UserInterface::GetData(TaterUserInput *tui){
 		tui->highShot 	= joy1.GetRawButton(7);
 		tui->trussShot 	= joy1.GetRawButton(5);
 		tui->bumpShot 	= joy1.GetRawButton(9);
+		tui->customShot = joy1.GetRawButton(10);
 	
-		tui->forkDown	= joy1.GetRawButton(6);	
-		tui->forkUp		= joy1.GetRawButton(8);	  
+		tui->forkDown	= joy1.GetRawButton(8);	
+		tui->forkUp		= joy1.GetRawButton(6);	  
 	 }
 	 else{
 
@@ -60,7 +61,8 @@ void  UserInterface::GetData(TaterUserInput *tui){
 		tui->trussShot 	= joy2.GetRawButton(2);
 		tui->bumpShot 	= joy2.GetRawButton(3);
 		
-		tui->forkDown	= joy3.GetY() < 0.1;	
+		tui->forkDown	= joy3.GetY() < -0.1;	
 		tui->forkUp		= joy3.GetY() > 0.1;	
+		tui->customShot = joy1.GetRawButton(5);
 	 }		
 }

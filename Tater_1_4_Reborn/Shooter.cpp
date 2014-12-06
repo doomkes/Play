@@ -14,10 +14,16 @@ static void ShootBall(Shooter *s)
 {
 while(1){
  		int startTime =GetFPGATime();
+ 		double length = 0.130;
+ 		length = SmartDashboard::GetNumber("something");
+ 		if (!(0.0 < length < 0.2))
+ 			length = 0.130;
+ 					 
 		switch(s->GetShotType())
 		{
 		case HIGH_SHOT:
 			printf("High Shot ----> On:%lu  ",GetFPGATime()-startTime);
+			SmartDashboard::PutString("shotType","That was a high shot");
 			s->SolenoidOn(true);
 			Wait(0.2);
 			printf("Off:%lu \n\n",GetFPGATime()-startTime);
@@ -25,13 +31,15 @@ while(1){
 			break;
 		case TRUSS_SHOT:
 			printf("Truss Shot ----> On:%lu   ",GetFPGATime()-startTime);
+			SmartDashboard::PutString("shotType","That was a truss shot");
 			s->SolenoidOn(true);
-			Wait(0.13);
+			Wait(length);
 			printf("Off:%lu\n\n",GetFPGATime()-startTime);
 			s->SolenoidOn(false);	
 			break;
 		case BUMP_SHOT:
-			printf("Bump Shot ----> On:%lu  ",GetFPGATime()-startTime);		
+			printf("Bump Shot ----> On:%lu  ",GetFPGATime()-startTime);
+			SmartDashboard::PutString("shotType","That was a bump shot");
 			s->SolenoidOn(true);
 			Wait(0.01);
 			printf("Off:%lu   ",GetFPGATime()-startTime);		
@@ -40,6 +48,20 @@ while(1){
 			printf("On:%lu   ",GetFPGATime()-startTime);		
 			s->SolenoidOn(true);
 			Wait(0.06);
+			printf("Off:%lu\n\n",GetFPGATime()-startTime);		
+			s->SolenoidOn(false);
+			break;
+		case CUSTOM_SHOT:
+			printf("Custom Shot ----> On:%lu  ",GetFPGATime()-startTime);
+			SmartDashboard::PutString("shotType","That was a custom shot");
+			s->SolenoidOn(true);
+			Wait(SmartDashboard::GetNumber("firstShot"));
+			printf("Off:%lu   ",GetFPGATime()-startTime);		
+			s->SolenoidOn(false);
+			Wait(SmartDashboard::GetNumber("delay"));
+			printf("On:%lu   ",GetFPGATime()-startTime);		
+			s->SolenoidOn(true);
+			Wait(SmartDashboard::GetNumber("secondShot"));
 			printf("Off:%lu\n\n",GetFPGATime()-startTime);		
 			s->SolenoidOn(false);
 			break;
@@ -228,7 +250,7 @@ void Shooter::Run2(TaterUserInput *tui){
 }
 
 void Shooter::Run3(TaterUserInput *tui){
-	static int  lastHighShot = 0,lastTrussShot = 0,lastBumpShot = 0;
+	static int  lastHighShot = 0,lastTrussShot = 0,lastBumpShot = 0, lastCustomShot = 0;
 	//shooter code -- let the rest of the code starve while performing shots.
 	if(m_shotType == NO_SHOT){
 		if (tui->highShot && !lastHighShot){
@@ -243,12 +265,16 @@ void Shooter::Run3(TaterUserInput *tui){
 			m_shotType = BUMP_SHOT;
 			m_task.Resume();
 			}
+		else if (tui->customShot && !lastCustomShot) {
+			m_shotType = CUSTOM_SHOT;
+			m_task.Resume();
+		}
 	}
 
 	lastHighShot = tui->highShot;
 	lastTrussShot = tui->trussShot;
 	lastBumpShot = tui->bumpShot;
-
+	lastCustomShot = tui->customShot;
 }
 void Shooter::Complete(void){
 	m_shotType = NO_SHOT;

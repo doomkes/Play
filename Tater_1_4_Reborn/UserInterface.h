@@ -17,6 +17,7 @@ struct TaterUserInput{
 	bool highShot;
 	bool trussShot;
 	bool bumpShot;
+	bool customShot;
 	bool frontDrive;
 	bool revDrive;
 	float leftVal;
