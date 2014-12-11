@@ -15,10 +15,19 @@ static void ShootBall(Shooter *s)
 while(1){
  		int startTime =GetFPGATime();
  		double length = 0.130;
- 		length = SmartDashboard::GetNumber("something");
- 		if (!(0.0 < length < 0.2))
- 			length = 0.130;
- 					 
+ 		trussLength = SmartDashboard::GetNumber("something");
+ 		shot1 = SmartDashboard::GetNumber("firstShot");
+ 		delay1 = SmartDashboard::GetNumber("delay");
+ 		shot2 = SmartDashboard::GetNumber("secondShot");
+ 		if (!(0.0 < trussLength < 0.2))
+ 			trussLength = 0.130;
+ 		if (!(0.0 < shot1 < 0.2))
+ 			shot1 = 0.000;
+ 		if (!(0.0 < delay1 < 0.2))
+ 			delay1 = 0.000;
+ 		if (!(0.0 < shot2 < 0.2))
+ 			shot2 = 0.000;
+ 					 			 
 		switch(s->GetShotType())
 		{
 		case HIGH_SHOT:
@@ -33,7 +42,7 @@ while(1){
 			printf("Truss Shot ----> On:%lu   ",GetFPGATime()-startTime);
 			SmartDashboard::PutString("shotType","That was a truss shot");
 			s->SolenoidOn(true);
-			Wait(length);
+			Wait(trussLength);
 			printf("Off:%lu\n\n",GetFPGATime()-startTime);
 			s->SolenoidOn(false);	
 			break;
@@ -55,13 +64,13 @@ while(1){
 			printf("Custom Shot ----> On:%lu  ",GetFPGATime()-startTime);
 			SmartDashboard::PutString("shotType","That was a custom shot");
 			s->SolenoidOn(true);
-			Wait(SmartDashboard::GetNumber("firstShot"));
+			Wait(shot1);
 			printf("Off:%lu   ",GetFPGATime()-startTime);		
 			s->SolenoidOn(false);
-			Wait(SmartDashboard::GetNumber("delay"));
+			Wait(delay1);
 			printf("On:%lu   ",GetFPGATime()-startTime);		
 			s->SolenoidOn(true);
-			Wait(SmartDashboard::GetNumber("secondShot"));
+			Wait(shot2);
 			printf("Off:%lu\n\n",GetFPGATime()-startTime);		
 			s->SolenoidOn(false);
 			break;
